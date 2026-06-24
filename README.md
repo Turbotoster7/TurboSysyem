@@ -1,3 +1,3 @@
-# TurboValentine
+# TurboSystem
 
-Turbo walentynki project.
+Custom ESP32 display system — main screen + small OLED backup.
