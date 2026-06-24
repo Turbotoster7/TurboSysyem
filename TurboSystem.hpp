@@ -1,8 +1,9 @@
 #pragma once
 
 enum class DeviceMode {
-    MAIN,
-    SLEEP
+    MAIN,   // big o
+    SLEEP,  // smaqll
+    DUAL    // both
 };
 
 class StateManager {

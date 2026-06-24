@@ -12,8 +12,6 @@ constexpr uint8_t SCREEN_HEIGHT = 64;
 constexpr int8_t OLED_RESET = -1;
 constexpr uint8_t SCREEN_ADDRESS = 0x3C;
 
-constexpr bool IS_ALARM_SET = 0;
-
 extern Adafruit_SSD1306 display;
 
 #define WHITE SSD1306_WHITE
@@ -256,6 +254,34 @@ namespace text_font
     };
 }
 
+namespace icons
+{
+    constexpr uint8_t WIDTH = 16;
+    constexpr uint8_t HEIGHT = 16;
+
+    static const unsigned char wifi[] PROGMEM = {
+        0x00, 0x00, 0x00, 0x00,
+        0x0F, 0xF0, 0x3F, 0xFC,
+        0x70, 0x0E, 0xC3, 0xC3,
+        0x0F, 0xF0, 0x18, 0x18,
+        0x00, 0x00, 0x03, 0xC0,
+        0x07, 0xE0, 0x07, 0xE0,
+        0x03, 0xC0, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+    };
+
+    static const unsigned char bell[] PROGMEM = {
+        0x00, 0x00, 0x01, 0x80,
+        0x03, 0xC0, 0x07, 0xE0,
+        0x0F, 0xF0, 0x0F, 0xF0,
+        0x1F, 0xF8, 0x1F, 0xF8,
+        0x3F, 0xFC, 0x3F, 0xFC,
+        0x7F, 0xFE, 0x7F, 0xFE,
+        0xFF, 0xFF, 0x00, 0x00,
+        0x03, 0xC0, 0x01, 0x80,
+    };
+}
+
 namespace layout
 {
     constexpr int16_t CLOCK_Y = 5;
@@ -276,6 +302,39 @@ namespace layout
         drawGlyph(2, clock_font::Colon);
         drawGlyph(3, clock_font::digit(minute / 10));
         drawGlyph(4, clock_font::digit(minute % 10));
+    }
+
+    // Indykator WiFi w prawym gornym rogu (rysowany tylko gdy polaczono).
+    void drawWifiIcon(int16_t x = SCREEN_WIDTH - icons::WIDTH, int16_t y = 0)
+    {
+        display.drawBitmap(x, y, icons::wifi, icons::WIDTH, icons::HEIGHT, WHITE);
+    }
+
+    // Mala godzina "HH:MM" wbudowana czcionka GFX (rozmiar 1).
+    void drawSmallTime(uint8_t hour, uint8_t minute, int16_t x, int16_t y)
+    {
+        char buf[6];
+        snprintf(buf, sizeof(buf), "%02u:%02u", hour, minute);
+        display.setTextColor(WHITE);
+        display.setTextSize(1);
+        display.setCursor(x, y);
+        display.print(buf);
+    }
+
+    // Dolny wiersz: ikona budzika + ustawiona godzina alarmu, wysrodkowane.
+    void drawAlarmRow(uint8_t hour, uint8_t minute)
+    {
+        constexpr uint8_t iconSize = 16;
+        constexpr uint8_t gap = 4;
+        constexpr uint8_t timeChars = 5;            // "HH:MM"
+        constexpr uint8_t charW = 6;                 // szerokosc znaku GFX (size 1)
+        const int16_t totalW = iconSize + gap + timeChars * charW;
+        const int16_t startX = (SCREEN_WIDTH - totalW) / 2;
+        const int16_t rowY = SCREEN_HEIGHT - iconSize;
+
+        display.drawBitmap(startX, rowY, icons::bell, iconSize, iconSize, WHITE);
+        // wycentruj tekst (wys. 8px) wzgledem ikony (16px)
+        drawSmallTime(hour, minute, startX + iconSize + gap, rowY + (iconSize - 8) / 2);
     }
 }
 
